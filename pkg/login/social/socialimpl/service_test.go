@@ -3,6 +3,7 @@ package socialimpl
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/require"
@@ -316,6 +317,7 @@ use_refresh_token = true
 empty_scopes =
 hosted_domain = test_hosted_domain
 signout_redirect_url = https://oauth.com/signout?post_logout_redirect_uri=https://grafana.com
+token_exchange_timeout = 30s
 `
 
 	iniFile, err := ini.Load([]byte(iniContent))
@@ -357,6 +359,7 @@ signout_redirect_url = https://oauth.com/signout?post_logout_redirect_uri=https:
 		SkipOrgRoleSync:             true,
 		HostedDomain:                "test_hosted_domain",
 		SignoutRedirectUrl:          "https://oauth.com/signout?post_logout_redirect_uri=https://grafana.com",
+		TokenExchangeTimeout:        30 * time.Second,
 		Extra: map[string]string{
 			"allowed_organizations":   "org1, org2",
 			"id_token_attribute_name": "id_token",
@@ -371,4 +374,16 @@ signout_redirect_url = https://oauth.com/signout?post_logout_redirect_uri=https:
 	require.NoError(t, err)
 
 	require.Equal(t, expectedOAuthInfo, oauthInfo)
+}
+
+func TestTokenExchangeTimeout(t *testing.T) {
+	t.Run("returns default when not set", func(t *testing.T) {
+		info := &social.OAuthInfo{}
+		require.Equal(t, defaultTokenExchangeTimeout, tokenExchangeTimeout(info))
+	})
+
+	t.Run("returns configured value when set", func(t *testing.T) {
+		info := &social.OAuthInfo{TokenExchangeTimeout: 45 * time.Second}
+		require.Equal(t, 45*time.Second, tokenExchangeTimeout(info))
+	})
 }

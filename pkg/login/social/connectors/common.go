@@ -208,7 +208,7 @@ func createOAuthInfoFromKeyValues(settingsKV map[string]any, parsingWarns *[]err
 
 	var oauthInfo social.OAuthInfo
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-		DecodeHook:       emptyStrToSliceDecodeHook,
+		DecodeHook:       mapstructure.ComposeDecodeHookFunc(mapstructure.StringToTimeDurationHookFunc(), emptyStrToSliceDecodeHook),
 		Result:           &oauthInfo,
 		WeaklyTypedInput: true,
 	})

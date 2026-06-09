@@ -121,7 +121,7 @@ func (ss *SocialService) GetOAuthHttpClient(name string) (*http.Client, error) {
 
 	oauthClient := &http.Client{
 		Transport: tr,
-		Timeout:   time.Second * 15,
+		Timeout:   tokenExchangeTimeout(info),
 	}
 
 	if info.TlsClientCert != "" || info.TlsClientKey != "" {
@@ -227,4 +227,14 @@ func convertIniSectionToMap(sec *ini.Section) map[string]any {
 		mappedSettings[k] = v
 	}
 	return mappedSettings
+}
+
+const defaultTokenExchangeTimeout = 15 * time.Second
+
+// tokenExchangeTimeout returns the configured token exchange timeout, or the default if not set.
+func tokenExchangeTimeout(info *social.OAuthInfo) time.Duration {
+	if info.TokenExchangeTimeout > 0 {
+		return info.TokenExchangeTimeout
+	}
+	return defaultTokenExchangeTimeout
 }
